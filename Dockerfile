@@ -1,27 +1,17 @@
 # Use an official Java runtime as a parent image
-FROM openjdk:11-jdk-slim
-
-# Set the working directory
-WORKDIR /app
+FROM tomcat:10-jdk21-temurin-jammy
 
 # Copy the application source code to the container
+WORKDIR /root/
 COPY . .
 
 # Install Tomcat
-RUN apt-get update && \
-    apt-get install -y wget && \
-    wget -q https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.62/bin/apache-tomcat-9.0.62.tar.gz && \
-    tar xzf apache-tomcat-9.0.62.tar.gz && \
-    mv apache-tomcat-9.0.62 tomcat && \
-    rm apache-tomcat-9.0.62.tar.gz && \
-    apt-get clean
+RUN apt update
+RUN apt install ant -y
+#RUN curl https://repo1.maven.org/maven2/org/netbeans/modules/org-netbeans-modules-java-j2seproject/RELEASE230/org-netbeans-modules-java-j2seproject-RELEASE230.jar > copylibs
+RUN ant -Dj2ee.server.home=/usr/local/tomcat/ -Dlibs.CopyLibs.classpath=copylibs
+#RUN ant
 
-RUN chmod +x /app/tomcat/bin/catalina.sh
+COPY ./dist/stbcStore.war /usr/local/tomcat/webapps/ROOT.war
 
-COPY ./dist/stbcStore.war /app/tomcat/webapps/
-
-# Expose the port the app runs on
 EXPOSE 8080
-
-# Start Tomcat
-CMD ["/app/tomcat/bin/catalina.sh", "run"]
